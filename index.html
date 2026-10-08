@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Pressure Wash</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="gameContainer">
+
+    <!-- Canvas stack (bottom → top) -->
+    <canvas id="cleanCanvas"></canvas>
+    <canvas id="dirtyCanvas"></canvas>
+
+    <!-- HUD (sits above dirty layer, below particles) -->
+    <div id="hud">
+      <div id="topBar">
+        <div id="streakDisplay">
+          <span id="streakIcon">🔥</span>
+          <span id="streakCount">0</span>
+        </div>
+        <div id="scoreDisplay">
+          <span id="scoreValue">0</span>
+        </div>
+        <div id="soapDisplay">
+          <span id="soapIcon">🧼</span>
+          <span id="soapCount">3</span>
+        </div>
+      </div>
+      <div id="progressContainer">
+        <div id="progressFill"></div>
+        <div id="progressLabel">WASH IT CLEAN</div>
+      </div>
+      <div id="surfaceLabel"></div>
+    </div>
+
+    <!-- Completion overlay -->
+    <div id="completeOverlay">
+      <div id="completeTitle">✨ SPARKLING CLEAN! ✨</div>
+      <div id="completeBonusText"></div>
+    </div>
+
+    <!-- Particle canvas (top-most) -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Hint text (shown on first load) -->
+    <div id="hintText">Drag to wash ↕ Double-tap for soap 🧼</div>
+  </div>
+
+  <!-- YouTube Playables SDK shim (overridden by real SDK inside YouTube) -->
+  <script src="js/ytgame-shim.js"></script>
+
+  <!-- Game modules -->
+  <script src="js/audio.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/surface.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
