@@ -39,8 +39,8 @@ canvas {
   display: block;
 }
 
-#cleanCanvas    { z-index: 1; opacity: 0; transition: opacity 0.28s ease; }
-#dirtyCanvas    { z-index: 2; cursor: crosshair; opacity: 0; transition: opacity 0.28s ease; }
+#cleanCanvas    { z-index: 1; transition: opacity 0.28s ease; }
+#dirtyCanvas    { z-index: 2; cursor: crosshair; transition: opacity 0.28s ease; }
 #particleCanvas { z-index: 4; pointer-events: none; }
 
 /* ── HUD ── */

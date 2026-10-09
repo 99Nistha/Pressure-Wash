@@ -270,16 +270,7 @@ const Game = (() => {
         AudioSystem.playLevelUp();
         UI.showLevelUp(level);
       }
-      // Fade canvases out → load new surface → fade back in
-      cleanCvs.style.opacity = '0';
-      dirtyCvs.style.opacity = '0';
-      setTimeout(() => {
-        loadSurface();
-        requestAnimationFrame(() => {
-          cleanCvs.style.opacity = '1';
-          dirtyCvs.style.opacity = '1';
-        });
-      }, 300);
+      loadSurface();
     }, 2300);
   }
 
@@ -441,9 +432,11 @@ const Game = (() => {
     UI.updateSoap(soapBombs);
     UI.updateProgress(0);
 
+    // Pre-load the first surface so it's ready behind the start screen
+    loadSurface();
     requestAnimationFrame(loop);
 
-    // Show start screen — game begins on Play button
+    // Start screen — Play button just reveals the already-running game
     const startScreen = document.getElementById('startScreen');
     const playBtn     = document.getElementById('playBtn');
 
@@ -459,15 +452,10 @@ const Game = (() => {
 
       startScreen.classList.add('hidden');
       setTimeout(() => startScreen.remove(), 450);
-
-      loadSurface();
-      requestAnimationFrame(() => {
-        cleanCvs.style.opacity = '1';
-        dirtyCvs.style.opacity = '1';
-      });
     }
 
     playBtn.addEventListener('pointerdown', startGame);
+    playBtn.addEventListener('click',       startGame);
 
     // Signal ready to YouTube Playables SDK
     window.ytgame.gameReady();
