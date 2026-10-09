@@ -65,10 +65,11 @@ const AudioSystem = (() => {
    */
   function playSpray(x, canvasW) {
     if (!ctx || muted) return;
-    const now = ctx.currentTime;
-    // Throttle: don't fire more than ~20/sec
-    if (now - lastSprayTime < 0.05) return;
-    lastSprayTime = now;
+    // Throttle using performance.now() (ms) — avoids ctx.currentTime=0 bug
+    // when AudioContext is still suspended at first stroke
+    const wallNow = performance.now();
+    if (wallNow - lastSprayTime < 50) return;
+    lastSprayTime = wallNow;
     resume();
 
     // Brown noise via low-pass-filtered white noise
