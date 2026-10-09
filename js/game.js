@@ -19,23 +19,48 @@ const Game = (() => {
 
   let W = 0, H = 0;
 
+  // ── Level names (matches TYPES order in surface.js) ──────────────────────
+  const LEVEL_NAMES = [
+    'CAR HOOD', 'PATIO TILES', 'DRIVEWAY', 'WOODEN DECK', 'BRICK WALL',
+    'CONCRETE SLAB', 'POOL DECK', 'GARAGE FLOOR', 'WOODEN FENCE', 'SIDEWALK',
+  ];
+
   // ── Game state ────────────────────────────────────────────────────────────
-  let score         = 0;
-  let streak        = 0;
-  let level         = 1;
-  let soapBombs     = 3;
-  let surfaceIndex  = 0;
-  let phase         = 'idle';  // idle | playing | completing | paused
-  let currentSurface = null;
-  let initialDirty  = 0;       // dirty-pixel count when surface first loaded
-  let lastPtr       = null;    // {x, y} of previous pointer position
-  let ptrActive     = false;
-  let nozzlePos     = null;    // current pointer position for the ring visual
-  let lastTapMs     = 0;       // for double-tap detection
-  let lastMeasureMs = 0;
-  let audioReady    = false;
-  let comboTimer    = 0;       // time of last stroke (ms) — for combo multiplier
-  let combo         = 1;       // current combo multiplier
+  let score            = 0;
+  let streak           = 0;
+  let level            = 1;    // difficulty (= currentLevelIdx + 1)
+  let soapBombs        = 3;
+  let unlockedCount    = 1;    // how many levels are accessible (1–10)
+  let currentLevelIdx  = 0;    // which level is playing (0–9)
+  let phase            = 'idle';
+  let currentSurface   = null;
+  let initialDirty     = 0;
+  let lastPtr          = null;
+  let ptrActive        = false;
+  let nozzlePos        = null;
+  let lastTapMs        = 0;
+  let lastMeasureMs    = 0;
+  let audioReady       = false;
+  let comboTimer       = 0;
+  let combo            = 1;
+
+  // ── Progress persistence ──────────────────────────────────────────────────
+
+  function loadProgress() {
+    try {
+      unlockedCount = Math.max(1, parseInt(localStorage.getItem('pw_unlocked') || '1'));
+      soapBombs     = Math.max(0, parseInt(localStorage.getItem('pw_soaps')    || '3'));
+      score         = Math.max(0, parseInt(localStorage.getItem('pw_score')    || '0'));
+    } catch (e) { /* localStorage unavailable in some sandboxes */ }
+  }
+
+  function saveProgress() {
+    try {
+      localStorage.setItem('pw_unlocked', unlockedCount);
+      localStorage.setItem('pw_soaps',    soapBombs);
+      localStorage.setItem('pw_score',    score);
+    } catch (e) {}
+  }
 
   // ── Resize ────────────────────────────────────────────────────────────────
 
@@ -51,9 +76,8 @@ const Game = (() => {
     ParticleSystem.resize(W, H);
 
     if (currentSurface && phase !== 'idle') {
-      // Regenerate surface at new dimensions (orientation change)
       const seed = Date.now() & 0xFFFF;
-      currentSurface = SurfaceGenerator.create(W, H, level, surfaceIndex, seed);
+      currentSurface = SurfaceGenerator.create(W, H, level, currentLevelIdx, seed);
       drawSurface();
       calibrateInitialDirt();
     }
@@ -106,22 +130,56 @@ const Game = (() => {
     if (cleanedPct >= 99 && phase === 'playing') completeSurface();
   }
 
-  // ── Load surface ──────────────────────────────────────────────────────────
+  // ── Level select ──────────────────────────────────────────────────────────
 
-  function loadSurface() {
+  function buildLevelSelect() {
+    const grid = document.getElementById('levelGrid');
+    grid.innerHTML = '';
+    const total = SurfaceGenerator.typeCount();
+    for (let i = 0; i < total; i++) {
+      const unlocked  = i < unlockedCount;
+      const completed = i < unlockedCount - 1;
+      const card = document.createElement('div');
+      card.className = `lc ${unlocked ? 'unlocked' : 'locked'}${completed ? ' completed' : ''}`;
+      card.innerHTML =
+        `<div class="lc-num">${i + 1}</div>` +
+        `<div class="lc-name">${LEVEL_NAMES[i] || 'LEVEL ' + (i + 1)}</div>` +
+        `<div class="lc-badge">${unlocked ? (completed ? '✓' : '▶') : '🔒'}</div>`;
+      if (unlocked) {
+        card.addEventListener('pointerdown', () => startLevel(i));
+      }
+      grid.appendChild(card);
+    }
+    document.getElementById('lsSoapCount').textContent = soapBombs;
+  }
+
+  function showLevelSelect() {
+    buildLevelSelect();
+    document.getElementById('levelSelect').classList.remove('hidden');
+    phase = 'idle';
+  }
+
+  function hideLevelSelect() {
+    document.getElementById('levelSelect').classList.add('hidden');
+  }
+
+  // ── Start a specific level ─────────────────────────────────────────────────
+
+  function startLevel(idx) {
+    currentLevelIdx = idx;
+    level = idx + 1;
+    hideLevelSelect();
     phase = 'idle';
     UI.hideComplete();
     ParticleSystem.clear();
+    combo = 1;
 
-    const seed      = Date.now() & 0xFFFF;
-    currentSurface  = SurfaceGenerator.create(W, H, level, surfaceIndex, seed);
-    surfaceIndex    = (surfaceIndex + 1) % SurfaceGenerator.typeCount();
-
+    const seed = Date.now() & 0xFFFF;
+    currentSurface = SurfaceGenerator.create(W, H, level, idx, seed);
     drawSurface();
     calibrateInitialDirt();
     UI.updateProgress(0);
     UI.setSurfaceLabel(currentSurface.label);
-    combo = 1;
     phase = 'playing';
   }
 
@@ -255,26 +313,29 @@ const Game = (() => {
       window.ytgame.game.reportScore(score);
     }
 
+    // Unlock next level + award soap (only on first clear of this level)
+    const isNewClear = currentLevelIdx + 1 >= unlockedCount;
+    if (isNewClear && unlockedCount < SurfaceGenerator.typeCount()) {
+      unlockedCount = currentLevelIdx + 2;
+      soapBombs = Math.min(soapBombs + 1, 8);
+      UI.updateSoap(soapBombs);
+      saveProgress();
+    } else {
+      saveProgress();
+    }
+
     const title     = perfect ? '✨ SPARKLING CLEAN! ✨' : '✓ CLEAN!';
     let   bonusLine = perfect ? `PERFECT! +${baseBonus}` : `+${baseBonus}`;
-    if (streakBonus) bonusLine += `  🔥 STREAK ×${streak} +${streakBonus}`;
-    if (comboBonus)  bonusLine += `  ⚡ COMBO +${comboBonus}`;
+    if (isNewClear) bonusLine += '  🧼 +1 SOAP!';
+    if (streakBonus) bonusLine += `  🔥 ×${streak}`;
+    if (comboBonus)  bonusLine += `  ⚡ +${comboBonus}`;
     UI.showComplete(title, bonusLine);
 
     setTimeout(() => {
-      level++;
-      // +1 soap every level (max 8); +2 extra at every 5th level
-      const bonus = (level % 5 === 0) ? 2 : 1;
-      soapBombs = Math.min(soapBombs + bonus, 8);
-      UI.updateSoap(soapBombs);
-      AudioSystem.playLevelUp();
-      if (level % 5 === 0) {
-        UI.showLevelUp(`LEVEL ${level} — +${bonus} 🧼 SOAPS!`);
-      } else {
-        UI.showLevelUp(`LEVEL ${level} — +1 🧼`);
-      }
-      loadSurface();
-    }, 2300);
+      UI.hideComplete();
+      ParticleSystem.clear();
+      showLevelSelect();
+    }, 2800);
   }
 
   // ── Nozzle ring (drawn on particle canvas each frame) ─────────────────────
@@ -429,13 +490,16 @@ const Game = (() => {
       window.ytgame.environment.onResume = () => { if (phase === 'paused')  phase = 'playing'; };
     }
 
+    // Load saved progress
+    loadProgress();
+
     // Initial HUD
-    UI.updateScore(0);
+    UI.updateScore(score);
     UI.updateStreak(0);
     UI.updateSoap(soapBombs);
     UI.updateProgress(0);
 
-    // Wire up Play button FIRST — before anything that could throw
+    // Wire up Play button — shows level select after dismissing start screen
     const startScreen = document.getElementById('startScreen');
     const playBtn     = document.getElementById('playBtn');
 
@@ -450,15 +514,14 @@ const Game = (() => {
       AudioSystem.resume();
 
       startScreen.classList.add('hidden');
-      setTimeout(() => startScreen.remove(), 450);
+      setTimeout(() => { if (startScreen.parentNode) startScreen.remove(); }, 450);
+      showLevelSelect();
     }
 
     playBtn.addEventListener('touchstart',  startGame, { passive: false });
     playBtn.addEventListener('pointerdown', startGame);
     playBtn.addEventListener('click',       startGame);
 
-    // Pre-load the first surface so it's ready behind the start screen
-    loadSurface();
     requestAnimationFrame(loop);
 
     // Signal ready to YouTube Playables SDK
