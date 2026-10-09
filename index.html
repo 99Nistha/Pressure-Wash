@@ -11,11 +11,7 @@
 <body>
   <div id="gameContainer">
 
-    <!-- Canvas stack (bottom → top) -->
-    <canvas id="cleanCanvas"></canvas>
-    <canvas id="dirtyCanvas"></canvas>
-
-    <!-- HUD (sits above dirty layer, below particles) -->
+    <!-- HUD sits in normal flow at the top -->
     <div id="hud">
       <div id="topBar">
         <div id="streakDisplay">
@@ -37,19 +33,28 @@
       <div id="surfaceLabel"></div>
     </div>
 
-    <!-- Completion overlay -->
-    <div id="completeOverlay">
-      <div id="completeTitle">✨ SPARKLING CLEAN! ✨</div>
-      <div id="completeBonusText"></div>
+    <!-- Game area: fills all space below the HUD -->
+    <div id="gameArea">
+
+      <!-- Canvas stack (bottom → top) -->
+      <canvas id="cleanCanvas"></canvas>
+      <canvas id="dirtyCanvas"></canvas>
+
+      <!-- Completion overlay -->
+      <div id="completeOverlay">
+        <div id="completeTitle">✨ SPARKLING CLEAN! ✨</div>
+        <div id="completeBonusText"></div>
+      </div>
+
+      <!-- Particle canvas (top-most) -->
+      <canvas id="particleCanvas"></canvas>
+
+      <!-- Hint text (shown on first interaction) -->
+      <div id="hintText">Drag to wash ↕ Double-tap for soap 🧼</div>
+
     </div>
 
-    <!-- Particle canvas (top-most) -->
-    <canvas id="particleCanvas"></canvas>
-
-    <!-- Hint text (shown on first load) -->
-    <div id="hintText">Drag to wash ↕ Double-tap for soap 🧼</div>
-
-    <!-- Start screen -->
+    <!-- Start screen (absolute, covers everything) -->
     <div id="startScreen">
       <div id="startContent">
         <div id="startIcon">💦</div>

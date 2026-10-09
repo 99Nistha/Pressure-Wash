@@ -40,7 +40,7 @@ const Game = (() => {
   // ── Resize ────────────────────────────────────────────────────────────────
 
   function resize() {
-    const container = document.getElementById('gameContainer');
+    const container = document.getElementById('gameArea');
     const nW = container.clientWidth;
     const nH = container.clientHeight;
     if (nW === W && nH === H) return;
