@@ -432,11 +432,7 @@ const Game = (() => {
     UI.updateSoap(soapBombs);
     UI.updateProgress(0);
 
-    // Pre-load the first surface so it's ready behind the start screen
-    loadSurface();
-    requestAnimationFrame(loop);
-
-    // Start screen — Play button just reveals the already-running game
+    // Wire up Play button FIRST — before anything that could throw
     const startScreen = document.getElementById('startScreen');
     const playBtn     = document.getElementById('playBtn');
 
@@ -456,6 +452,10 @@ const Game = (() => {
 
     playBtn.addEventListener('pointerdown', startGame);
     playBtn.addEventListener('click',       startGame);
+
+    // Pre-load the first surface so it's ready behind the start screen
+    loadSurface();
+    requestAnimationFrame(loop);
 
     // Signal ready to YouTube Playables SDK
     window.ytgame.gameReady();

@@ -203,11 +203,8 @@ const SurfaceGenerator = (() => {
     }
     tmpCtx.putImageData(imgData, 0, 0);
 
-    // Scale up onto the destination context; blur smooths the 4× pixelation
-    dCtx.save();
-    dCtx.filter = 'blur(10px)';
+    // Scale up onto the destination context (bilinear interpolation smooths the 4× upscale)
     dCtx.drawImage(tmpCvs, 0, 0, w, h);
-    dCtx.restore();
 
     // Pressure zones — thick stubborn stains
     const zones    = [];
