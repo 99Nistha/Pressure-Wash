@@ -71,6 +71,7 @@ const AudioSystem = (() => {
     if (wallNow - lastSprayTime < 50) return;
     lastSprayTime = wallNow;
     resume();
+    const now = ctx.currentTime;
 
     // Brown noise via low-pass-filtered white noise
     const bufLen = Math.floor(ctx.sampleRate * 0.09);

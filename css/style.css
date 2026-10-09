@@ -24,12 +24,12 @@ body {
 
 /* ── Game Container ── */
 #gameContainer {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   max-width: 600px;
-  max-height: 900px;
   margin: 0 auto;
   overflow: hidden;
   background: #111;
@@ -43,7 +43,6 @@ body {
   position: absolute;
   inset: 0;
   border: 4px solid #2e2e2e;
-  border-radius: 10px;
   pointer-events: none;
   z-index: 99;
 }
