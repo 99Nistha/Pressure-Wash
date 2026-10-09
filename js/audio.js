@@ -9,11 +9,19 @@ const AudioSystem = (() => {
 
   /** Create AudioContext on first user gesture (required by browsers). */
   function init() {
+    if (ctx) { resume(); return; }   // already initialised
     try {
       ctx = new (window.AudioContext || window.webkitAudioContext)();
       master = ctx.createGain();
       master.gain.setValueAtTime(0.75, ctx.currentTime);
       master.connect(ctx.destination);
+
+      // Play a silent buffer immediately — this unlocks audio on iOS Safari
+      const silentBuf = ctx.createBuffer(1, 1, ctx.sampleRate);
+      const silentSrc = ctx.createBufferSource();
+      silentSrc.buffer = silentBuf;
+      silentSrc.connect(ctx.destination);
+      silentSrc.start(0);
 
       // Hook YouTube mute/unmute signals
       if (window.ytgame && window.ytgame.sound) {

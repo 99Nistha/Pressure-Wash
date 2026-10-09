@@ -449,6 +449,7 @@ const Game = (() => {
       setTimeout(() => startScreen.remove(), 450);
     }
 
+    playBtn.addEventListener('touchstart',  startGame, { passive: false });
     playBtn.addEventListener('pointerdown', startGame);
     playBtn.addEventListener('click',       startGame);
 
