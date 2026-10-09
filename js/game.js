@@ -103,7 +103,7 @@ const Game = (() => {
     const cleanedPct = Math.round(Math.max(0, initialDirty - dirty) / initialDirty * 100);
     UI.updateProgress(cleanedPct);
 
-    if (cleanedPct >= 92 && phase === 'playing') completeSurface();
+    if (cleanedPct >= 99 && phase === 'playing') completeSurface();
   }
 
   // ── Load surface ──────────────────────────────────────────────────────────
@@ -182,7 +182,7 @@ const Game = (() => {
       if (zone.cleaned) continue;
       const d = Math.hypot(x - zone.x, y - zone.y);
       if (d < zone.radius + r) {
-        zone.cleanProgress += 0.055;
+        zone.cleanProgress += Math.max(0.055 - level * 0.003, 0.022); // harder zones at high levels
         if (zone.cleanProgress >= 1) {
           zone.cleaned = true;
           AudioSystem.playPop();
@@ -234,7 +234,7 @@ const Game = (() => {
     // Final measurement
     const { dirty }  = countDirtyPixels();
     const pct        = Math.round(Math.max(0, initialDirty - dirty) / initialDirty * 100);
-    const perfect    = pct >= 97;
+    const perfect    = pct >= 99;
 
     AudioSystem.playComplete(perfect);
     ParticleSystem.sparkleAt(W / 2, H * 0.44);
@@ -263,11 +263,15 @@ const Game = (() => {
 
     setTimeout(() => {
       level++;
+      // +1 soap every level (max 8); +2 extra at every 5th level
+      const bonus = (level % 5 === 0) ? 2 : 1;
+      soapBombs = Math.min(soapBombs + bonus, 8);
+      UI.updateSoap(soapBombs);
+      AudioSystem.playLevelUp();
       if (level % 5 === 0) {
-        soapBombs = Math.min(soapBombs + 1, 6);
-        UI.updateSoap(soapBombs);
-        AudioSystem.playLevelUp();
-        UI.showLevelUp(level);
+        UI.showLevelUp(`LEVEL ${level} — +${bonus} 🧼 SOAPS!`);
+      } else {
+        UI.showLevelUp(`LEVEL ${level} — +1 🧼`);
       }
       loadSurface();
     }, 2300);

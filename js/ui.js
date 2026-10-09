@@ -99,17 +99,17 @@ const UI = (() => {
 
   // ── Level-up banner ───────────────────────────────────────────────────────
 
-  function showLevelUp(level) {
+  function showLevelUp(msg) {
     const div = document.createElement('div');
     div.className   = 'score-popup';
-    div.textContent = `LEVEL ${level} ⚡`;
+    div.textContent = msg;
     div.style.left  = '50%';
     div.style.top   = '60%';
-    div.style.fontSize = '28px';
+    div.style.fontSize = '22px';
     div.style.color    = '#00f2fe';
     div.style.textShadow = '0 0 12px #00f2fe';
     el.gameContainer.appendChild(div);
-    setTimeout(() => { if (div.parentNode) div.remove(); }, 1600);
+    setTimeout(() => { if (div.parentNode) div.remove(); }, 1800);
   }
 
   // ── Soap bomb flash ───────────────────────────────────────────────────────

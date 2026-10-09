@@ -141,6 +141,140 @@ const SurfaceGenerator = (() => {
     }
   }
 
+  function paintConcrete(ctx, w, h) {
+    // Large cast-concrete slabs
+    const sW = Math.floor(w / 2);
+    const sH = Math.floor(h / 3);
+    ctx.fillStyle = '#909088';
+    ctx.fillRect(0, 0, w, h);
+    for (let row = 0; row <= Math.ceil(h / sH) + 1; row++) {
+      for (let col = 0; col <= Math.ceil(w / sW) + 1; col++) {
+        const x = col * sW, y = row * sH;
+        const v = ((col * 19 + row * 37) & 0xff) % 20 - 10;
+        const b = 158 + v;
+        ctx.fillStyle = `rgb(${b},${b},${b - 4})`;
+        ctx.fillRect(x + 5, y + 5, sW - 10, sH - 10);
+      }
+    }
+    // Expansion joints
+    ctx.fillStyle = '#5a5a52';
+    for (let row = 0; row <= Math.ceil(h / sH) + 1; row++) ctx.fillRect(0, row * sH, w, 6);
+    for (let col = 0; col <= Math.ceil(w / sW) + 1; col++) ctx.fillRect(col * sW, 0, 6, h);
+    // Surface cracks
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(w * 0.15, h * 0.1);
+    ctx.bezierCurveTo(w * 0.18, h * 0.4, w * 0.12, h * 0.65, w * 0.17, h * 0.9);
+    ctx.stroke();
+  }
+
+  function paintPool(ctx, w, h) {
+    // Swimming pool — blue/teal tiles
+    const tW = Math.floor(w / 7);
+    const tH = Math.floor(h / 9);
+    ctx.fillStyle = '#5a9ec0';
+    ctx.fillRect(0, 0, w, h);
+    for (let row = 0; row <= Math.ceil(h / tH) + 1; row++) {
+      for (let col = 0; col <= Math.ceil(w / tW) + 1; col++) {
+        const x = col * tW, y = row * tH;
+        const v = ((col * 11 + row * 23) & 0xff) % 18 - 9;
+        ctx.fillStyle = `rgb(${60 + v},${148 + v},${195 + v})`;
+        ctx.fillRect(x + 2, y + 2, tW - 4, tH - 4);
+        // Subtle shimmer
+        const shine = ctx.createLinearGradient(x, y, x + tW, y + tH);
+        shine.addColorStop(0, 'rgba(255,255,255,0.18)');
+        shine.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = shine;
+        ctx.fillRect(x + 2, y + 2, tW - 4, tH - 4);
+      }
+    }
+    // Grout
+    ctx.fillStyle = '#c8dce8';
+    for (let row = 0; row <= Math.ceil(h / tH) + 1; row++) {
+      ctx.fillRect(0, row * tH, w, 3);
+      for (let col = 0; col <= Math.ceil(w / tW) + 1; col++) ctx.fillRect(col * tW, row * tH, 3, tH);
+    }
+  }
+
+  function paintGarage(ctx, w, h) {
+    // Dark garage floor — aggregate + lane guide
+    ctx.fillStyle = '#252525';
+    ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 700; i++) {
+      const px = Math.random() * w, py = Math.random() * h;
+      const s  = 35 + Math.floor(Math.random() * 40);
+      ctx.fillStyle = `rgb(${s},${s},${s})`;
+      ctx.beginPath();
+      ctx.arc(px, py, 1 + Math.random() * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Yellow guide line
+    ctx.strokeStyle = 'rgba(255,215,0,0.25)';
+    ctx.lineWidth = 6;
+    ctx.setLineDash([28, 16]);
+    ctx.beginPath();
+    ctx.moveTo(w * 0.5, 0);
+    ctx.lineTo(w * 0.5, h);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  function paintFence(ctx, w, h) {
+    // Vertical wood-plank fence
+    const pW = Math.floor(w / 5);
+    for (let i = 0; i <= Math.ceil(w / pW) + 1; i++) {
+      const x = i * pW;
+      const v = (i % 3) * 8;
+      ctx.fillStyle = `rgb(${148 + v},${98 + v},${48 + v})`;
+      ctx.fillRect(x, 0, pW - 4, h);
+      ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+      ctx.lineWidth = 1;
+      for (let g = 0; g < 5; g++) {
+        const gx = x + (g / 5) * (pW - 4) + 3;
+        const jit = (Math.random() - 0.5) * 10;
+        ctx.beginPath();
+        ctx.moveTo(gx + jit, 0);
+        ctx.bezierCurveTo(gx + 3 + jit, h * 0.35, gx - 2 + jit, h * 0.65, gx + 1 + jit, h);
+        ctx.stroke();
+      }
+      // Knot
+      if (i % 2 === 1) {
+        const ky = h * (0.25 + (i % 3) * 0.22);
+        ctx.fillStyle = 'rgba(0,0,0,0.14)';
+        ctx.beginPath();
+        ctx.ellipse(x + pW / 2 - 2, ky, 9, 6, 0.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.fillStyle = '#221000';
+    for (let i = 0; i <= Math.ceil(w / pW) + 1; i++) ctx.fillRect(i * pW - 2, 0, 5, h);
+  }
+
+  function paintSidewalk(ctx, w, h) {
+    // Wide sidewalk slabs
+    const sW = Math.floor(w / 1.8);
+    const sH = Math.floor(h / 4);
+    ctx.fillStyle = '#999990';
+    ctx.fillRect(0, 0, w, h);
+    for (let row = 0; row <= Math.ceil(h / sH) + 1; row++) {
+      for (let col = -1; col <= Math.ceil(w / sW) + 1; col++) {
+        const ox = (row % 2) * (sW / 2);
+        const x = col * sW + ox, y = row * sH;
+        const v = ((col * 17 + row * 41) & 0xff) % 22 - 11;
+        const b = 168 + v;
+        ctx.fillStyle = `rgb(${b},${b},${b - 3})`;
+        ctx.fillRect(x + 4, y + 4, sW - 8, sH - 8);
+      }
+    }
+    ctx.fillStyle = '#5c5c54';
+    for (let row = 0; row <= Math.ceil(h / sH) + 1; row++) {
+      ctx.fillRect(0, row * sH, w, 5);
+      const ox = (row % 2) * (sW / 2);
+      for (let col = -1; col <= Math.ceil(w / sW) + 1; col++) ctx.fillRect(col * sW + ox, row * sH, 5, sH);
+    }
+  }
+
   function paintWall(ctx, w, h) {
     const bW = Math.floor(w / 5.5);
     const bH = Math.floor(h / 9);
@@ -180,7 +314,7 @@ const SurfaceGenerator = (() => {
     const tmpCtx   = tmpCvs.getContext('2d');
     const imgData  = tmpCtx.createImageData(sw, sh);
     const d        = imgData.data;
-    const str      = Math.min(0.58 + level * 0.035, 0.94) * intensity;
+    const str      = Math.min(0.56 + level * 0.042, 0.97) * intensity;
     const [dr, dg, db] = dirtRGB;
 
     for (let y = 0; y < sh; y++) {
@@ -206,16 +340,16 @@ const SurfaceGenerator = (() => {
     // Scale up onto the destination context (bilinear interpolation smooths the 4× upscale)
     dCtx.drawImage(tmpCvs, 0, 0, w, h);
 
-    // Pressure zones — thick stubborn stains
+    // Pressure zones — stubborn stains (more + tighter at higher levels)
     const zones    = [];
-    const numZones = 3 + Math.min(Math.floor(level / 2), 4);
+    const numZones = 3 + Math.min(Math.floor(level / 2), 9);
 
     for (let i = 0; i < numZones; i++) {
       const h1 = hash(i * 3.7, seed * 0.01, seed + i);
       const h2 = hash(seed * 0.01, i * 2.3, seed + i + 50);
       const sx  = 0.08*w + h1 * 0.84*w;
       const sy  = 0.12*h + h2 * 0.76*h;
-      const rad = 18 + hash(i, i*2, seed) * 32;
+      const rad = Math.max(14, 20 - Math.floor(level / 5)) + hash(i, i*2, seed) * 28;
 
       zones.push({ x: sx, y: sy, radius: rad, cleanProgress: 0, cleaned: false });
 
@@ -235,11 +369,16 @@ const SurfaceGenerator = (() => {
   // ── Surface type registry ──────────────────────────────────────────────────
 
   const TYPES = [
-    { label: 'CAR HOOD',     painter: paintCar,      dirtRGB: [55, 35, 15], intensity: 0.88 },
-    { label: 'PATIO TILES',  painter: paintPatio,    dirtRGB: [30, 65, 25], intensity: 0.82 },
-    { label: 'DRIVEWAY',     painter: paintDriveway, dirtRGB: [18, 18, 18], intensity: 0.92 },
-    { label: 'WOODEN DECK',  painter: paintDeck,     dirtRGB: [25, 55, 18], intensity: 0.78 },
-    { label: 'BRICK WALL',   painter: paintWall,     dirtRGB: [12, 28, 10], intensity: 0.84 },
+    { label: 'CAR HOOD',       painter: paintCar,       dirtRGB: [55, 35, 15], intensity: 0.88 },
+    { label: 'PATIO TILES',    painter: paintPatio,     dirtRGB: [30, 65, 25], intensity: 0.82 },
+    { label: 'DRIVEWAY',       painter: paintDriveway,  dirtRGB: [18, 18, 18], intensity: 0.92 },
+    { label: 'WOODEN DECK',    painter: paintDeck,      dirtRGB: [25, 55, 18], intensity: 0.78 },
+    { label: 'BRICK WALL',     painter: paintWall,      dirtRGB: [12, 28, 10], intensity: 0.84 },
+    { label: 'CONCRETE SLAB',  painter: paintConcrete,  dirtRGB: [45, 38, 22], intensity: 0.86 },
+    { label: 'POOL DECK',      painter: paintPool,      dirtRGB: [18, 55, 18], intensity: 0.80 },
+    { label: 'GARAGE FLOOR',   painter: paintGarage,    dirtRGB: [10, 10,  8], intensity: 0.96 },
+    { label: 'WOODEN FENCE',   painter: paintFence,     dirtRGB: [28, 42, 22], intensity: 0.82 },
+    { label: 'SIDEWALK',       painter: paintSidewalk,  dirtRGB: [40, 32, 18], intensity: 0.88 },
   ];
 
   // ── Public API ─────────────────────────────────────────────────────────────
