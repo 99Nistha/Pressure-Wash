@@ -25,18 +25,18 @@ body {
 /* ── Game Container ── */
 #gameContainer {
   position: relative;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
+  width: calc(100vw - 12px);
+  height: calc(100vh - 12px);
+  height: calc(100dvh - 12px);
   max-width: 600px;
   max-height: 900px;
-  margin: 0 auto;
+  margin: 6px auto;
   overflow: hidden;
   background: #111;
   display: flex;
   flex-direction: column;
-  /* Inset shadow = visible border with zero layout impact */
-  box-shadow: inset 0 0 0 4px #1e1e1e, inset 0 0 0 5px #333;
+  border-radius: 10px;
+  box-shadow: 0 0 0 3px #2a2a2a;
 }
 
 /* ── Game Area (below HUD) ── */
