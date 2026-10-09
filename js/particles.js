@@ -26,16 +26,27 @@ const ParticleSystem = (() => {
    * @param {number} y
    * @param {number} intensity  0–3, scales count and speed
    */
-  function sprayAt(x, y, intensity) {
-    const count = 4 + Math.round(intensity * 3);
+  /**
+   * Water spray at (x, y).
+   * @param {number} x
+   * @param {number} y
+   * @param {number} intensity  0–3, scales count and speed
+   * @param {number} [dir]      stroke direction angle (radians); omit for omnidirectional
+   */
+  function sprayAt(x, y, intensity, dir) {
+    const count  = 4 + Math.round(intensity * 3);
+    const hasDir = (dir != null);
     for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
+      // Directional: spread ±70° around stroke; else fully random
+      const a = hasDir
+        ? dir + (Math.random() - 0.5) * 2.4
+        : Math.random() * Math.PI * 2;
       const speed = 0.8 + Math.random() * 2.5 * (intensity + 0.5);
       pool.push({
         type:  'drop',
         x, y,
-        vx:    Math.cos(angle) * speed,
-        vy:    Math.sin(angle) * speed - 0.8,
+        vx:    Math.cos(a) * speed,
+        vy:    Math.sin(a) * speed - 0.8,
         life:  1,
         decay: 0.045 + Math.random() * 0.03,
         r:     1.5 + Math.random() * 2.5,
@@ -155,6 +166,7 @@ const ParticleSystem = (() => {
   // ── Main update / render loop ───────────────────────────────────────────────
 
   function update() {
+    if (pool.length > 300) pool.splice(0, pool.length - 300);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (let i = pool.length - 1; i >= 0; i--) {

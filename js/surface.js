@@ -170,20 +170,29 @@ const SurfaceGenerator = (() => {
    * @returns {Array} pressureZones
    */
   function paintDirt(dCtx, w, h, dirtRGB, intensity, seed, level) {
-    const imgData = dCtx.createImageData(w, h);
-    const d       = imgData.data;
-    const str     = Math.min(0.58 + level * 0.035, 0.94) * intensity;
+    // Generate noise at ¼ scale (16× fewer pixels) then upscale with blur
+    const SCALE    = 4;
+    const sw       = Math.ceil(w / SCALE);
+    const sh       = Math.ceil(h / SCALE);
+    const tmpCvs   = document.createElement('canvas');
+    tmpCvs.width   = sw;
+    tmpCvs.height  = sh;
+    const tmpCtx   = tmpCvs.getContext('2d');
+    const imgData  = tmpCtx.createImageData(sw, sh);
+    const d        = imgData.data;
+    const str      = Math.min(0.58 + level * 0.035, 0.94) * intensity;
     const [dr, dg, db] = dirtRGB;
 
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const idx = (y * w + x) * 4;
-        const n   = fractal(x/90, y/90, seed) * 0.55
-                  + fractal(x/30, y/30, seed+500) * 0.30
-                  + smoothNoise(x/12, y/12, seed+999) * 0.15;
+    for (let y = 0; y < sh; y++) {
+      for (let x = 0; x < sw; x++) {
+        const idx = (y * sw + x) * 4;
+        const ox  = x * SCALE,  oy = y * SCALE;  // full-res equivalent coords
+        const n   = fractal(ox/90, oy/90, seed) * 0.55
+                  + fractal(ox/30, oy/30, seed+500) * 0.30
+                  + smoothNoise(ox/12, oy/12, seed+999) * 0.15;
 
         if (n > 0.32) {
-          const a = Math.min((n - 0.32) / 0.42 * str, 1);
+          const a    = Math.min((n - 0.32) / 0.42 * str, 1);
           const dark = Math.min(a * 1.4, 1);
           d[idx]   = Math.round(dr * (1 - dark * 0.35));
           d[idx+1] = Math.round(dg * (1 - dark * 0.35));
@@ -192,7 +201,13 @@ const SurfaceGenerator = (() => {
         }
       }
     }
-    dCtx.putImageData(imgData, 0, 0);
+    tmpCtx.putImageData(imgData, 0, 0);
+
+    // Scale up onto the destination context; blur smooths the 4× pixelation
+    dCtx.save();
+    dCtx.filter = 'blur(10px)';
+    dCtx.drawImage(tmpCvs, 0, 0, w, h);
+    dCtx.restore();
 
     // Pressure zones — thick stubborn stains
     const zones    = [];

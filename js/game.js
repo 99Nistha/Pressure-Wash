@@ -135,7 +135,9 @@ const Game = (() => {
   // ── Wash stroke ───────────────────────────────────────────────────────────
 
   function washAt(x, y, px, py) {
-    const r = brushR();
+    const r    = brushR();
+    const dist = Math.hypot(x - px, y - py);
+    const dir  = dist > 0 ? Math.atan2(y - py, x - px) : null;
 
     // ── Erase dirt ──
     dirtyCtx.globalCompositeOperation = 'destination-out';
@@ -149,9 +151,13 @@ const Game = (() => {
     dirtyCtx.stroke();
     dirtyCtx.globalCompositeOperation = 'source-over';
 
-    // ── Effects ──
+    // ── Effects — sub-step particles along the stroke ──
     AudioSystem.playSpray(x, W);
-    ParticleSystem.sprayAt(x, y, 1.6);
+    const steps = dist > 0 ? Math.min(Math.ceil(dist / (r * 1.5)), 3) : 1;
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      ParticleSystem.sprayAt(px + (x - px) * t, py + (y - py) * t, 1.6, dir);
+    }
 
     // ── Combo decay ──
     const now = performance.now();
@@ -182,6 +188,7 @@ const Game = (() => {
           zone.cleaned = true;
           AudioSystem.playPop();
           ParticleSystem.zonePop(zone.x, zone.y);
+          if (navigator.vibrate) navigator.vibrate(55);
           const bonus = 50 + level * 5;
           score += bonus;
           UI.updateScore(score);
@@ -198,6 +205,7 @@ const Game = (() => {
     soapBombs--;
     UI.updateSoap(soapBombs);
     AudioSystem.playSoap();
+    if (navigator.vibrate) navigator.vibrate([30, 15, 60]);
 
     const r = Math.round(Math.min(W, H) * 0.26);
     UI.soapFlash(x, y, r);
@@ -262,7 +270,16 @@ const Game = (() => {
         AudioSystem.playLevelUp();
         UI.showLevelUp(level);
       }
-      loadSurface();
+      // Fade canvases out → load new surface → fade back in
+      cleanCvs.style.opacity = '0';
+      dirtyCvs.style.opacity = '0';
+      setTimeout(() => {
+        loadSurface();
+        requestAnimationFrame(() => {
+          cleanCvs.style.opacity = '1';
+          dirtyCvs.style.opacity = '1';
+        });
+      }, 300);
     }, 2300);
   }
 
@@ -392,11 +409,10 @@ const Game = (() => {
 
   function init() {
     UI.init();
-    resize();
-    window.addEventListener('resize', resize);
-
     ParticleSystem.init(particleCvs);
     pCtx = particleCvs.getContext('2d');
+    resize();
+    window.addEventListener('resize', resize);
 
     // Touch events
     dirtyCvs.addEventListener('touchstart',  onDown, { passive: false });
@@ -425,8 +441,33 @@ const Game = (() => {
     UI.updateSoap(soapBombs);
     UI.updateProgress(0);
 
-    loadSurface();
     requestAnimationFrame(loop);
+
+    // Show start screen — game begins on Play button
+    const startScreen = document.getElementById('startScreen');
+    const playBtn     = document.getElementById('playBtn');
+
+    let started = false;
+    function startGame(e) {
+      if (e) e.preventDefault();
+      if (started) return;
+      started = true;
+
+      AudioSystem.init();
+      audioReady = true;
+      AudioSystem.resume();
+
+      startScreen.classList.add('hidden');
+      setTimeout(() => startScreen.remove(), 450);
+
+      loadSurface();
+      requestAnimationFrame(() => {
+        cleanCvs.style.opacity = '1';
+        dirtyCvs.style.opacity = '1';
+      });
+    }
+
+    playBtn.addEventListener('pointerdown', startGame);
 
     // Signal ready to YouTube Playables SDK
     window.ytgame.gameReady();
