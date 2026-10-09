@@ -166,7 +166,6 @@ const Game = (() => {
     combo      = Math.min(combo + 0.04, 4);
 
     // ── Score ──
-    const dist = Math.hypot(x - px, y - py);
     const pts  = Math.max(1, Math.round(dist * 0.45 * combo * (1 + streak * 0.06)));
     score += pts;
     UI.updateScore(score);
