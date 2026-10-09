@@ -20,14 +20,14 @@ body {
   overflow: hidden;
   background: #0d1117;
   font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
-  padding: 6px;
 }
 
 /* ── Game Container ── */
 #gameContainer {
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   max-width: 600px;
   max-height: 900px;
   margin: 0 auto;
@@ -35,9 +35,8 @@ body {
   background: #111;
   display: flex;
   flex-direction: column;
-  border: 3px solid #2a2a2a;
-  border-radius: 12px;
-  box-shadow: 0 0 0 1px #000, 0 8px 32px rgba(0,0,0,0.7);
+  /* Inset shadow = visible border with zero layout impact */
+  box-shadow: inset 0 0 0 4px #1e1e1e, inset 0 0 0 5px #333;
 }
 
 /* ── Game Area (below HUD) ── */
